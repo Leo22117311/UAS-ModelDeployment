@@ -1,8 +1,16 @@
 import streamlit as st
 import pandas as pd
-import requests
+import pickle
 
 st.title("Obesity Level Prediction")
+
+@st.cache_resource
+def load_model():
+    with open('best_model.pkl', 'rb') as f:
+        data = pickle.load(f)
+    return data['model'], data['encoders']
+
+model, encoders = load_model()
 
 def get_user_input():
     return {
@@ -24,13 +32,22 @@ def get_user_input():
         "MTRANS": st.selectbox("Main Transport", ["Public_Transportation", "Walking", "Automobile", "Motorbike", "Bike"])
     }
 
+def preprocess_input(input_dict, encoders):
+    df = pd.DataFrame([input_dict])
+    for col, le in encoders.items():
+        if col in df.columns:
+            df[col] = le.transform(df[col])
+    return df
+
 input_data = get_user_input()
 
 if st.button("Predict Obesity Level"):
-    response = requests.post("http://localhost:8000/predict", json=input_data)
+    processed = preprocess_input(input_data, encoders)
+    prediction = model.predict(processed)[0]
 
-    if response.status_code == 200:
-        result = response.json()
-        st.success(f"Predicted Class: {result['label']} (code {result['prediction']})")
+    if 'NObeyesdad' in encoders:
+        label = encoders['NObeyesdad'].inverse_transform([prediction])[0]
     else:
-        st.error("Prediction failed. Please check your FastAPI backend.")
+        label = str(prediction)
+
+    st.success(f"Predicted Class: {label} (code {prediction})")
