@@ -4,7 +4,7 @@
 Predict obesity levels based on lifestyle and demographic features, then deploy the model with FastAPI + Streamlit.
 
 ## Dataset
-- Source:
+- Source: `ObesityDataSet1.csv`
 - Features: Age, Weight, Family History, Diet Habits, Physical Activity, etc.
 - Target: NObeyesedad (7 levels of obesity)
 
